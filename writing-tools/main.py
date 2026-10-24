@@ -1,7 +1,7 @@
 """Writing Tools: a sample Folio adapter.
 
 Folio and an adapter exchange one JSON object per line over stdin/stdout.
-See docs/adapters.md for the full protocol.
+See https://github.com/solacecasino/folio/blob/main/docs/adapters.md for the protocol.
 """
 
 import datetime
