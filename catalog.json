@@ -1,0 +1,71 @@
+{
+  "adapters": [
+    {
+      "id": "folio-link",
+      "name": "Folio Link",
+      "version": "0.2.0",
+      "author": "Folio",
+      "license": "MIT",
+      "description": "Edit a document together, live, over an encrypted direct link. No accounts.",
+      "permissions": [
+        "document.read",
+        "document.edit",
+        "network"
+      ],
+      "category": "Collaboration",
+      "tags": [],
+      "repo": "solacecasino/folio-adapters",
+      "homepage": "https://github.com/solacecasino/folio-adapters",
+      "stars": 0,
+      "updated": "2026-10-24",
+      "downloads": {
+        "linux-x64": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/folio-link-0.2.0-linux-x64.zip",
+        "macos-arm64": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/folio-link-0.2.0-macos-arm64.zip",
+        "windows-x64": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/folio-link-0.2.0-windows-x64.zip"
+      }
+    },
+    {
+      "id": "pdf-export",
+      "name": "PDF Export",
+      "version": "0.2.0",
+      "author": "Folio",
+      "license": "MIT",
+      "description": "Print-perfect PDFs that match the page exactly, with your theme's fonts embedded.",
+      "permissions": [
+        "document.read"
+      ],
+      "category": "Export",
+      "tags": [],
+      "repo": "solacecasino/folio-adapters",
+      "homepage": "https://github.com/solacecasino/folio-adapters",
+      "stars": 0,
+      "updated": "2026-10-24",
+      "downloads": {
+        "linux-x64": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/pdf-export-0.2.0-linux-x64.zip",
+        "macos-arm64": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/pdf-export-0.2.0-macos-arm64.zip",
+        "windows-x64": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/pdf-export-0.2.0-windows-x64.zip"
+      }
+    },
+    {
+      "id": "writing-tools",
+      "name": "Writing Tools",
+      "version": "0.2.0",
+      "author": "Folio",
+      "license": "MIT",
+      "description": "A word-count goal in the status line, today's date, and document stats.",
+      "permissions": [
+        "document.read",
+        "document.edit"
+      ],
+      "category": "Writing",
+      "tags": [],
+      "repo": "solacecasino/folio-adapters",
+      "homepage": "https://github.com/solacecasino/folio-adapters",
+      "stars": 0,
+      "updated": "2026-10-24",
+      "downloads": {
+        "all": "https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/writing-tools-0.2.0.zip"
+      }
+    }
+  ]
+}

@@ -4,6 +4,7 @@ version = "0.2.0"
 author = "Folio"
 license = "MIT"
 description = "Print-perfect PDFs that match the page exactly, with your theme's fonts embedded."
+homepage = "https://github.com/solacecasino/folio-adapters/tree/main/pdf-export"
 
 # The program to start, run from this folder.
 run = ["./pdf-export"]

@@ -4,6 +4,7 @@ version = "0.2.0"
 author = "Folio"
 license = "MIT"
 description = "Edit a document together, live, over an encrypted direct link. No accounts."
+homepage = "https://github.com/solacecasino/folio-adapters/tree/main/folio-link"
 
 # Built by ./build.sh.
 run = ["./folio-link"]

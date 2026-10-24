@@ -6,7 +6,12 @@ Folio → Adapters… → Add Adapter…. Compiled (Rust) adapters are built for
 this computer and named for it, e.g. pdf-export-0.2.0-windows-x64.zip;
 script adapters work everywhere and have no platform in the name.
 
-Usage: python3 scripts/build.py [--compiled-only]
+Usage: python3 scripts/build.py [--compiled-only] [--root DIR] [--name ID]
+
+--root builds a different folder: one adapter (a folder with adapter.toml),
+or a folder of adapters. --name sets the zip name for a single adapter
+(default: its folder's name). Other repos use this through the reusable
+workflow .github/workflows/build-adapter.yml.
 """
 
 from __future__ import annotations
@@ -32,10 +37,21 @@ def platform_name():
     return f"{system}-{arch}"
 
 
-def zip_adapter(folder: Path, out: Path, binary: Path | None):
-    """Zips the adapter folder. The compiled program, if any, is marked
-    executable for macOS and Linux."""
-    programs = {folder / folder.name, folder / f"{folder.name}.exe"}
+def arg(name: str) -> str | None:
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else None
+
+
+def program_name(folder: Path) -> str | None:
+    """The compiled program's name: the crate's package name."""
+    m = re.search(r'^\[package\][^\[]*?^name\s*=\s*"(.+?)"', (folder / "Cargo.toml").read_text(), re.M | re.S)
+    return m.group(1) if m else None
+
+
+def zip_adapter(folder: Path, out: Path, top: str, binary: Path | None):
+    """Zips the adapter folder as one top-level folder. The compiled
+    program, if any, is marked executable for macOS and Linux."""
+    name = binary.stem if binary else folder.name
+    programs = {folder / name, folder / f"{name}.exe"}
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for path in sorted(folder.rglob("*")):
             rel = path.relative_to(folder)
@@ -43,7 +59,9 @@ def zip_adapter(folder: Path, out: Path, binary: Path | None):
                 continue
             if path in programs and path != binary:
                 continue  # a leftover build for another platform
-            info = zipfile.ZipInfo.from_file(path, f"{folder.name}/{rel.as_posix()}")
+            if rel.parts[0].startswith(".") or rel.parts[0] == "dist":
+                continue  # .git, .github, earlier builds
+            info = zipfile.ZipInfo.from_file(path, f"{top}/{rel.as_posix()}")
             info.compress_type = zipfile.ZIP_DEFLATED
             if path == binary:
                 info.external_attr = 0o100755 << 16
@@ -52,23 +70,29 @@ def zip_adapter(folder: Path, out: Path, binary: Path | None):
 
 def main():
     compiled_only = "--compiled-only" in sys.argv
-    shutil.rmtree(DIST, ignore_errors=True)
-    DIST.mkdir()
-    for folder in sorted(p for p in ROOT.iterdir() if (p / "adapter.toml").is_file()):
+    root = Path(arg("--root") or ROOT).resolve()
+    single = (root / "adapter.toml").is_file()
+    folders = [root] if single else sorted(p for p in root.iterdir() if (p / "adapter.toml").is_file())
+    dist = (root if single else ROOT) / "dist"
+    shutil.rmtree(dist, ignore_errors=True)
+    dist.mkdir()
+    for folder in folders:
+        top = (arg("--name") if single else None) or folder.name
         version = re.search(r'^version = "(.+)"', (folder / "adapter.toml").read_text(), re.M).group(1)
         binary = None
         if (folder / "Cargo.toml").is_file():
             subprocess.run(["cargo", "build", "--release"], cwd=folder, check=True)
             exe = ".exe" if platform.system() == "Windows" else ""
-            binary = folder / f"{folder.name}{exe}"
+            program = program_name(folder) or folder.name
+            binary = folder / f"{program}{exe}"
             shutil.copy2(folder / "target/release" / binary.name, binary)
-            name = f"{folder.name}-{version}-{platform_name()}.zip"
+            name = f"{top}-{version}-{platform_name()}.zip"
         elif compiled_only:
             continue
         else:
-            name = f"{folder.name}-{version}.zip"
-        zip_adapter(folder, DIST / name, binary)
-        print(f"Built dist/{name}", flush=True)
+            name = f"{top}-{version}.zip"
+        zip_adapter(folder, dist / name, top, binary)
+        print(f"Built {dist / name}", flush=True)
 
 
 if __name__ == "__main__":

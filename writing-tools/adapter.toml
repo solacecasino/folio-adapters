@@ -4,6 +4,7 @@ version = "0.2.0"
 author = "Folio"
 license = "MIT"
 description = "A word-count goal in the status line, today's date, and document stats."
+homepage = "https://github.com/solacecasino/folio-adapters/tree/main/writing-tools"
 
 # The program to start, run from this folder. Any language works.
 run = ["python3", "main.py"]

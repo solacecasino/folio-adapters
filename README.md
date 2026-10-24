@@ -4,34 +4,45 @@ Optional add-ons for [Folio](https://github.com/solacecasino/folio), the
 document editor that ships bare. Folio has nothing extra built in. You add
 only the adapters you want.
 
+## 👉 [Browse the catalog](CATALOG.md)
+
+Every adapter, including other people's, with a direct download for macOS,
+Windows and Linux. To install one, download the zip for your computer and
+**drop it on the Folio window**. Folio shows what the adapter can do and
+asks before it first runs.
+
+## Make one and share it
+
+1. **[Use the template](https://github.com/solacecasino/folio-adapter-template/generate):**
+   a working Python adapter in about 15 lines, using
+   [`folio.py`](sdk/python/folio.py), a one-file helper library.
+2. **Push a version tag.** Its workflow publishes your release, with zips for
+   every platform if it's compiled.
+3. **[List it](https://github.com/solacecasino/folio-adapters/issues/new?template=list-my-adapter.yml):**
+   type your repo's name into the form. A check downloads your release and
+   opens the listing for you. Later releases show up in the catalog by
+   themselves.
+
+Prefer a pull request? Add `catalog/<name>.toml` with `repo = "you/name"`;
+see [catalog/README.md](catalog/README.md).
+
+## Folio's own adapters
+
+This repo also holds the adapters made with Folio:
+
 | Adapter | Adds | Built with |
 |---|---|---|
-| [pdf-export](pdf-export) | **File → Export as PDF** (Cmd+E, or Ctrl+E on Windows and Linux). Print-perfect: matches the page line for line, with your theme's fonts embedded and searchable text. | Rust, [krilla](https://github.com/LaurenzV/krilla) |
+| [pdf-export](pdf-export) | **File → Export as PDF**. Print-perfect: matches the page line for line, with your theme's fonts embedded and searchable text. | Rust, [krilla](https://github.com/LaurenzV/krilla) |
 | [folio-link](folio-link) | **Live co-editing** with people you invite, over encrypted peer-to-peer links. No accounts, no servers of ours. [How it works](docs/folio-link.md) | Rust, [iroh](https://iroh.computer), [Loro](https://loro.dev) |
-| [writing-tools](writing-tools) | A word-count goal panel, today's date, document stats. About 100 lines, a good starting point for your own. | Python |
+| [writing-tools](writing-tools) | A word-count goal panel, today's date, document stats. | Python |
 
-## Install
+Compiled adapters come as one zip per platform (`-macos-arm64`,
+`-windows-x64`, `-linux-x64`). If you pick the wrong one, Folio says which
+to get. Python adapters need Python 3: macOS installs it with its developer
+tools, most Linux systems have it, and on Windows get it from
+[python.org](https://www.python.org/downloads/).
 
-1. Download an adapter's zip from [Releases](../../releases).
-2. In Folio, choose **Folio → Adapters…** (Cmd+Shift+A, or Ctrl+Shift+A), then **Add Adapter…**, and pick the zip.
-3. The first time the adapter runs, Folio shows what it asks for (such as reading your document or going online), and you decide.
-
-You can remove an adapter at any time from the same window.
-
-Folio runs on macOS, Windows and Linux. The compiled adapters come in one zip
-per platform; pick the one for your computer:
-
-| Zip ends in | For |
-|---|---|
-| `-macos-arm64.zip` | Macs with Apple Silicon |
-| `-windows-x64.zip` | 64-bit Windows |
-| `-linux-x64.zip` | 64-bit Linux |
-
-`writing-tools` is one zip for every platform. It needs Python 3: macOS
-installs it with its developer tools, most Linux systems have it, and on
-Windows install it from [python.org](https://www.python.org/downloads/).
-
-## Write your own
+## The protocol
 
 An adapter is a folder with an `adapter.toml` and a program in any language.
 Folio starts the program when it's needed and exchanges one JSON message per

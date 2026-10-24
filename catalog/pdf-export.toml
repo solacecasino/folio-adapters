@@ -1,0 +1,5 @@
+# Listed in CATALOG.md. Name, version, permissions and downloads are read
+# from the latest release of `repo`.
+repo = "solacecasino/folio-adapters"
+adapter = "pdf-export"
+category = "Export"

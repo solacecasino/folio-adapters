@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -73,3 +74,5 @@ jobs:
           notes="docs/releases/${tag}.md"
           if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
           gh release create "$tag" dist/* --title "Folio adapters ${tag#v}" "$@"
+          # Point the catalog at the new downloads.
+          gh workflow run catalog.yml --ref main
