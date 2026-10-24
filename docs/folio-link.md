@@ -8,20 +8,17 @@ others over an encrypted link.
 
 ## Installing
 
-Folio Link is a Rust program in `adapters/folio-link/`. To build it:
+Download the `folio-link` zip for your computer (macOS, Windows or Linux)
+from [Releases](../../../releases), then in Folio choose **Folio → Adapters…**,
+**Add Adapter…**, and pick the zip. Everyone you edit with needs it too, on
+any of the three platforms. To build it yourself, run `scripts/build.py`.
 
-```bash
-adapters/folio-link/build.sh
-```
-
-Then copy the `adapters/folio-link` folder (with `adapter.toml` and the built
-`folio-link` binary) into `~/Library/Application Support/Folio/adapters/`.
 The first time it runs, Folio asks you to allow it to read and edit documents
 and to go online.
 
 ## Sharing
 
-1. Open the document and choose **Adapters → Share This Document**.
+1. With the document open, choose **Folio → Adapters…** and click **Share This Document** under Folio Link.
 2. Folio Link copies an invite to your clipboard. Send it to the people you
    want to edit with, over any channel you trust.
 3. When someone uses the invite, Folio asks whether to let them in. Nobody gets
@@ -35,7 +32,7 @@ everyone and has links to copy the invite again or stop.
 
 1. Copy the invite you were sent.
 2. Open a window in Folio (a new, empty one is best) and choose
-   **Adapters → Join from Clipboard**.
+   **Join from Clipboard** in the Adapters window.
 3. Once the host lets you in, the window shows the shared document. If the
    window already had text, Folio asks first, because joining replaces it.
 
@@ -50,7 +47,7 @@ They never take back what someone else typed.
 
 Everything. Folio Link uses [iroh](https://iroh.computer): every connection
 is QUIC with TLS 1.3, and each end is identified by its public key, so the
-link is encrypted from your Mac to theirs. The invite carries:
+link is encrypted from your computer to theirs. The invite carries:
 
 - the host's public key and network addresses, so guests reach the right
   machine and nobody can impersonate it;
@@ -59,12 +56,13 @@ link is encrypted from your Mac to theirs. The invite carries:
 
 Treat an invite like a key to the document while it's being shared. Once you
 stop sharing, the invite stops working. Your identity key is created on first
-use and kept at
-`~/Library/Application Support/Folio/folio-link/key`.
+use and kept in `folio-link/key` in Folio's config folder
+(`~/Library/Application Support/Folio` on macOS, `%APPDATA%\Folio` on
+Windows, `~/.config/folio` on Linux).
 
 ## Relays
 
-Two Macs often can't reach each other directly: home routers and office
+Two computers often can't reach each other directly: home routers and office
 firewalls get in the way. iroh first tries a direct connection. If that isn't
 possible right away, traffic goes through a **relay**: a server that forwards
 bytes between the two ends. By default these are the public relays run by
@@ -74,13 +72,12 @@ n0, the company that makes iroh.
   document. It does see that two addresses are talking, and roughly how much.
 - Once a direct path is found, iroh moves the connection to it and stops
   using the relay.
-- With the default setting, your Mac's current addresses are also published
+- With the default setting, your computer's current addresses are also published
   under its public key in n0's DNS, so guests can find it as your network
   changes. Turning relays off turns this off too.
 - Nothing connects to a relay, or anywhere else, until you choose Share or Join.
 
-To choose, create
-`~/Library/Application Support/Folio/folio-link/settings.toml`:
+To choose, create `folio-link/settings.toml` in Folio's config folder:
 
 ```toml
 # "default" uses n0's public relays.
@@ -89,7 +86,7 @@ To choose, create
 # Or the URL of a relay you run yourself (see iroh-relay).
 relay = "none"
 
-# Optional: the name others see. Defaults to your macOS account name.
+# Optional: the name others see. Defaults to your account name.
 name = "Ana"
 ```
 

@@ -171,14 +171,29 @@ mod tests {
 
     const BLACK: Color = Color([0, 0, 0, 255]);
 
+    /// A serif font this computer has.
+    fn test_font() -> std::path::PathBuf {
+        [
+            "/System/Library/Fonts/Supplemental/Georgia.ttf",
+            "C:/Windows/Fonts/georgia.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+            "/usr/share/fonts/TTF/DejaVuSerif.ttf",
+        ]
+        .into_iter()
+        .map(std::path::PathBuf::from)
+        .find(|p| p.is_file())
+        .expect("no test font found")
+    }
+
     #[test]
     fn writes_a_pdf_with_text_and_pages() {
+        let font = test_font();
         let page = |word: &str| Page {
             texts: vec![Text {
                 x: 72.0,
                 y: 100.0,
                 text: word.to_owned(),
-                font: "/System/Library/Fonts/Supplemental/Georgia.ttf".into(),
+                font: font.clone(),
                 size: 12.0,
                 color: BLACK,
                 slant: true,

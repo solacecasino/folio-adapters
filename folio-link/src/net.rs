@@ -21,8 +21,22 @@ pub fn config_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os("FOLIO_LINK_DIR") {
         return dir.into();
     }
-    let home = std::env::var_os("HOME").unwrap_or_default();
-    PathBuf::from(home).join("Library/Application Support/Folio/folio-link")
+    // Folio tells adapters where its config folder is.
+    if let Some(dir) = std::env::var_os("FOLIO_CONFIG_DIR").filter(|d| !d.is_empty()) {
+        return PathBuf::from(dir).join("folio-link");
+    }
+    let home = std::env::home_dir().unwrap_or_default();
+    let folio = if cfg!(target_os = "macos") {
+        home.join("Library/Application Support/Folio")
+    } else if cfg!(windows) {
+        std::env::var_os("APPDATA").map_or_else(|| home.join("AppData/Roaming"), PathBuf::from).join("Folio")
+    } else {
+        std::env::var_os("XDG_CONFIG_HOME")
+            .filter(|d| !d.is_empty())
+            .map_or_else(|| home.join(".config"), PathBuf::from)
+            .join("folio")
+    };
+    folio.join("folio-link")
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -81,14 +95,15 @@ pub fn display_name(settings: &Settings) -> String {
     if let Some(name) = &settings.name {
         return name.clone();
     }
-    let full = std::process::Command::new("id")
-        .arg("-F")
-        .output()
-        .ok()
+    // macOS knows the account's full name; elsewhere use the login name.
+    let full = cfg!(target_os = "macos")
+        .then(|| std::process::Command::new("id").arg("-F").output().ok())
+        .flatten()
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty());
-    full.or_else(|| std::env::var("USER").ok())
+    full.or_else(|| std::env::var(if cfg!(windows) { "USERNAME" } else { "USER" }).ok())
+        .filter(|s| !s.is_empty())
         .unwrap_or_else(|| "Someone".into())
 }
 

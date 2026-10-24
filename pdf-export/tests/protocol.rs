@@ -5,12 +5,23 @@ use std::process::{Command, Stdio};
 
 use serde_json::{json, Value};
 
-const GEORGIA: &str = "/System/Library/Fonts/Supplemental/Georgia.ttf";
+/// A serif font this computer has.
+fn font() -> &'static str {
+    [
+        "/System/Library/Fonts/Supplemental/Georgia.ttf",
+        "C:/Windows/Fonts/georgia.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+        "/usr/share/fonts/TTF/DejaVuSerif.ttf",
+    ]
+    .into_iter()
+    .find(|p| std::path::Path::new(p).is_file())
+    .expect("no test font found")
+}
 
 fn model() -> Value {
     let page = |word: &str, slant: bool| {
         json!({
-            "texts": [{"x": 72.0, "y": 100.0, "text": word, "font": GEORGIA, "size": 12.0,
+            "texts": [{"x": 72.0, "y": 100.0, "text": word, "font": font(), "size": 12.0,
                        "color": "#222222ff", "slant": slant}],
             "rects": [{"x": 72.0, "y": 102.0, "w": 40.0, "h": 1.0, "color": "#222222ff"}]
         })

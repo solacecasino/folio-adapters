@@ -1,0 +1,75 @@
+# Builds and tests the adapters on macOS, Windows and Linux. Pushing a tag
+# like v0.2.0 also publishes a GitHub release with every zip, using
+# docs/releases/<tag>.md as the notes. Run it by hand to get the zips as
+# artifacts without releasing.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest      # Apple Silicon
+            flags: --compiled-only
+          - os: windows-latest
+            flags: --compiled-only
+          - os: ubuntu-22.04      # also packs the script adapters, which run anywhere
+            flags: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            pdf-export
+            folio-link
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Linux test fonts
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y fonts-dejavu-core
+
+      - name: Test
+        shell: bash
+        run: |
+          (cd pdf-export && cargo test)
+          (cd folio-link && cargo test)
+
+      - name: Package
+        run: python scripts/build.py ${{ matrix.flags }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: adapters-${{ runner.os }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          notes="docs/releases/${tag}.md"
+          if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
+          gh release create "$tag" dist/* --title "Folio adapters ${tag#v}" "$@"
