@@ -19,11 +19,11 @@ on:
   workflow_call:
     inputs:
       path:
-        description: Folder holding adapter.toml
+        description: "Folder holding adapter.toml"
         type: string
         default: "."
       name:
-        description: Zip name prefix (default: the repo's name)
+        description: "Zip name prefix (default: the repo's name)"
         type: string
         default: ""
 
