@@ -14,9 +14,9 @@ Folio shows what an adapter can do and asks you before it first runs.
 
 Edit a document together, live, over an encrypted direct link. No accounts.
 
-**Download:** [macOS (Apple Silicon)](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/folio-link-0.2.0-macos-arm64.zip) · [Windows](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/folio-link-0.2.0-windows-x64.zip) · [Linux](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/folio-link-0.2.0-linux-x64.zip)
+**Download:** [macOS (Apple Silicon)](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/folio-link-0.3.0-macos-arm64.zip) · [Windows](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/folio-link-0.3.0-windows-x64.zip) · [Linux](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/folio-link-0.3.0-linux-x64.zip)
 
-Can read your document, edit your document, go online. v0.2.0 · by Folio · MIT · [source and help](https://github.com/solacecasino/folio-adapters) · updated 2026-10-24
+Can read your document, edit your document, go online. v0.3.0 · by Folio · MIT · [source and help](https://github.com/solacecasino/folio-adapters/tree/main/folio-link) · updated 2026-10-25
 
 ## Export
 
@@ -24,9 +24,9 @@ Can read your document, edit your document, go online. v0.2.0 · by Folio · MIT
 
 Print-perfect PDFs that match the page exactly, with your theme's fonts embedded.
 
-**Download:** [macOS (Apple Silicon)](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/pdf-export-0.2.0-macos-arm64.zip) · [Windows](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/pdf-export-0.2.0-windows-x64.zip) · [Linux](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/pdf-export-0.2.0-linux-x64.zip)
+**Download:** [macOS (Apple Silicon)](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/pdf-export-0.2.1-macos-arm64.zip) · [Windows](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/pdf-export-0.2.1-windows-x64.zip) · [Linux](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/pdf-export-0.2.1-linux-x64.zip)
 
-Can read your document. v0.2.0 · by Folio · MIT · [source and help](https://github.com/solacecasino/folio-adapters) · updated 2026-10-24
+Can read your document. v0.2.1 · by Folio · MIT · [source and help](https://github.com/solacecasino/folio-adapters/tree/main/pdf-export) · updated 2026-10-25
 
 ## Writing
 
@@ -34,9 +34,9 @@ Can read your document. v0.2.0 · by Folio · MIT · [source and help](https://g
 
 A word-count goal in the status line, today's date, and document stats.
 
-[**Download** (every platform)](https://github.com/solacecasino/folio-adapters/releases/download/v0.2.0/writing-tools-0.2.0.zip)
+[**Download** (every platform)](https://github.com/solacecasino/folio-adapters/releases/download/v0.3.0/writing-tools-0.2.1.zip)
 
-Can read your document, edit your document. v0.2.0 · by Folio · MIT · [source and help](https://github.com/solacecasino/folio-adapters) · updated 2026-10-24
+Can read your document, edit your document. v0.2.1 · by Folio · MIT · [source and help](https://github.com/solacecasino/folio-adapters/tree/main/writing-tools) · updated 2026-10-25
 
 ---
 
