@@ -12,7 +12,10 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 pub const ALPN: &[u8] = b"folio-link/1";
-const INVITE_PREFIX: &str = "folio-link:";
+/// Invites are links Folio opens: clicking one joins the session.
+const INVITE_PREFIX: &str = "folio://join#";
+/// What invites looked like before they were links; still accepted.
+const OLD_INVITE_PREFIX: &str = "folio-link:";
 const MAX_FRAME: usize = 256 << 20;
 
 /// Where settings and the identity key live. `FOLIO_LINK_DIR` overrides it,
@@ -148,9 +151,11 @@ impl Invite {
     }
 
     pub fn decode(s: &str) -> Result<Self> {
+        let s = s.trim();
         let body = s
-            .trim()
             .strip_prefix(INVITE_PREFIX)
+            .or_else(|| s.strip_prefix("folio://join/"))
+            .or_else(|| s.strip_prefix(OLD_INVITE_PREFIX))
             .context("not a Folio Link invite")?;
         let json = BASE64URL_NOPAD.decode(body.as_bytes())?;
         Ok(serde_json::from_slice(&json)?)
@@ -420,8 +425,10 @@ mod tests {
             secret: random_hex(16),
         };
         let text = invite.encode();
-        assert!(text.starts_with("folio-link:"));
+        assert!(text.starts_with("folio://join#"), "invites are links");
         assert_eq!(Invite::decode(&format!(" {text}\n")).unwrap(), invite);
+        let body = text.trim_start_matches("folio://join#");
+        assert_eq!(Invite::decode(&format!("folio-link:{body}")).unwrap(), invite, "old invites still work");
         assert!(Invite::decode("hello").is_err());
     }
 

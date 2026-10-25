@@ -19,8 +19,8 @@ and to go online.
 ## Sharing
 
 1. With the document open, choose **Folio → Adapters…** and click **Share This Document** under Folio Link.
-2. Folio Link copies an invite to your clipboard. Send it to the people you
-   want to edit with, over any channel you trust.
+2. Folio Link copies an invite link (`folio://join#…`) to your clipboard.
+   Send it to the people you want to edit with, over any channel you trust.
 3. When someone uses the invite, Folio asks whether to let them in. Nobody gets
    the document until you say yes.
 
@@ -30,9 +30,10 @@ everyone and has links to copy the invite again or stop.
 
 ## Joining
 
-1. Copy the invite you were sent.
-2. Open a window in Folio (a new, empty one is best) and choose
-   **Join from Clipboard** in the Adapters window.
+1. Click the invite link you were sent. Folio opens and joins. (You need
+   Folio 1.0.1 or later and Folio Link 0.3 or later.)
+2. Or copy the invite, open a window in Folio (a new, empty one is best)
+   and choose **Join from Clipboard** in the Adapters window.
 3. Once the host lets you in, the window shows the shared document. If the
    window already had text, Folio asks first, because joining replaces it.
 

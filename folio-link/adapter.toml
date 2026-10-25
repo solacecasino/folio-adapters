@@ -1,6 +1,6 @@
 # Live co-editing over encrypted peer-to-peer links. See docs/folio-link.md.
 name = "Folio Link"
-version = "0.2.0"
+version = "0.3.0"
 author = "Folio"
 license = "MIT"
 description = "Edit a document together, live, over an encrypted direct link. No accounts."
@@ -16,13 +16,16 @@ start = "command"
 
 events = ["snapshot"]
 
+# Clicking a folio://join#... invite link joins with it.
+links = { join = "join" }
+
 [[commands]]
 id = "share"
 label = "Share This Document"
 
 [[commands]]
 id = "join"
-label = "Join from Clipboard"
+label = "Join from Clipboard"   # or click the invite link
 
 [[commands]]
 id = "stop"

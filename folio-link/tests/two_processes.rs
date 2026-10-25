@@ -187,11 +187,13 @@ fn two_processes_sync_a_document() {
         h.notices.iter().any(|n| n.starts_with("Invite copied"))
     });
     assert_eq!(host.status.as_deref(), Some("● Sharing · 1 person"));
-    assert!(std::fs::read_to_string(&clipboard)
-        .unwrap()
-        .starts_with("folio-link:"));
+    let invite = std::fs::read_to_string(&clipboard).unwrap();
+    assert!(invite.starts_with("folio://join#"));
 
-    guest.command("join");
+    // Joining the way a clicked folio:// link does: Folio passes the
+    // invite, and the clipboard isn't used.
+    std::fs::write(&clipboard, "something else").unwrap();
+    guest.send(json!({"method": "command", "params": {"command": "join", "argument": invite}}));
     until(&mut host, &mut guest, "the join", |h, g| {
         g.paragraphs == start
             && g.status.as_deref() == Some("● Joined Hana's document")

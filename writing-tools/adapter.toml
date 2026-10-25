@@ -1,6 +1,6 @@
 # A sample Folio adapter. Copy this folder to start your own.
 name = "Writing Tools"
-version = "0.2.0"
+version = "0.2.1"
 author = "Folio"
 license = "MIT"
 description = "A word-count goal in the status line, today's date, and document stats."

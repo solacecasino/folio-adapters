@@ -132,29 +132,21 @@ fn copy(text: &str) -> bool {
     if let Some(path) = std::env::var_os("FOLIO_LINK_CLIPBOARD") {
         return std::fs::write(path, text).is_ok();
     }
-    let Ok(mut child) = std::process::Command::new("pbcopy")
-        .stdin(std::process::Stdio::piped())
-        .spawn()
-    else {
-        return false;
-    };
-    let wrote = child
-        .stdin
-        .take()
-        .map(|mut s| s.write_all(text.as_bytes()).is_ok())
-        .unwrap_or(false);
-    child.wait().map(|s| s.success()).unwrap_or(false) && wrote
+    // Kept alive while Folio Link runs: on Linux, the clipboard's contents
+    // belong to the program that copied them.
+    static CLIPBOARD: std::sync::Mutex<Option<arboard::Clipboard>> = std::sync::Mutex::new(None);
+    let mut slot = CLIPBOARD.lock().unwrap_or_else(|e| e.into_inner());
+    if slot.is_none() {
+        *slot = arboard::Clipboard::new().ok();
+    }
+    slot.as_mut().is_some_and(|c| c.set_text(text).is_ok())
 }
 
 fn paste() -> String {
     if let Some(path) = std::env::var_os("FOLIO_LINK_CLIPBOARD") {
         return std::fs::read_to_string(path).unwrap_or_default();
     }
-    std::process::Command::new("pbpaste")
-        .output()
-        .ok()
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .unwrap_or_default()
+    arboard::Clipboard::new().and_then(|mut c| c.get_text()).unwrap_or_default()
 }
 
 fn people(n: usize) -> String {
@@ -182,7 +174,8 @@ impl App {
             Some("initialize") => {}
             Some("command") => match params["command"].as_str().unwrap_or("") {
                 "share" => self.share(),
-                "join" => self.join(),
+                // Folio passes the invite when someone opens a folio:// link.
+                "join" => self.join(params["argument"].as_str()),
                 "stop" => {
                     self.stop(true);
                 }
@@ -336,13 +329,19 @@ impl App {
         }
     }
 
-    fn join(&mut self) {
+    /// Joins the session in `invite`, or in the invite on the clipboard.
+    fn join(&mut self, invite: Option<&str>) {
         if self.session.is_some() || self.starting {
             self.notify("Folio Link is already on. Choose Stop Sharing first.");
             return;
         }
-        let Ok(invite) = Invite::decode(&paste()) else {
-            self.notify("The clipboard doesn't hold a Folio Link invite.");
+        let from_clipboard = invite.is_none();
+        let Ok(invite) = Invite::decode(&invite.map_or_else(paste, str::to_owned)) else {
+            self.notify(if from_clipboard {
+                "The clipboard doesn't hold a Folio Link invite."
+            } else {
+                "That isn't a Folio Link invite."
+            });
             return;
         };
         self.join_invite = Some(invite);

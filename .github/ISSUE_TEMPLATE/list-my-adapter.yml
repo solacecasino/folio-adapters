@@ -1,5 +1,5 @@
-name: List my adapter
-description: Add your adapter to the catalog (no pull request needed).
+name: List my adapter or plugin
+description: Add your adapter or WebAssembly plugin to the catalog (no pull request needed).
 title: "List adapter: "
 labels: ["catalog"]
 body:
@@ -8,8 +8,9 @@ body:
       value: |
         Thanks for making an adapter! Before you submit, make sure your repo is public and its
         **latest release** has your zips, named `<adapter>-<version>-<platform>.zip` (or
-        `<adapter>-<version>.zip` for script adapters). The
-        [template](https://github.com/solacecasino/folio-adapter-template) does this for you.
+        `<adapter>-<version>.zip` for script adapters and plugins). The
+        [adapter template](https://github.com/solacecasino/folio-adapter-template) and
+        [plugin template](https://github.com/solacecasino/folio-plugin-template) do this for you.
   - type: input
     id: repo
     attributes:

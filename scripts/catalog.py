@@ -3,8 +3,9 @@
 
 Each entry only names a GitHub repo. Everything shown (name, description,
 author, version, permissions, download links) is read from that repo's
-latest release, and from the adapter.toml inside its zips, so what the
-catalog says an adapter can do is what Folio will ask you to allow.
+latest release, and from the adapter.toml or plugin.toml inside its zips,
+so what the catalog says an add-on can do is what Folio will show before
+installing it. Both adapters and WebAssembly plugins can be listed.
 
 Usage:
     python3 scripts/catalog.py            # write CATALOG.md and catalog.json
@@ -62,14 +63,17 @@ def read_manifest(data: bytes, zip_name: str, platform: str | None) -> dict:
     except zipfile.BadZipFile as e:
         raise Problem(f"{zip_name} isn't a valid zip") from e
     names = [n for n in z.namelist() if not n.startswith("__MACOSX/")]
-    manifests = [n for n in names if re.fullmatch(r"(?:[^/]+/)?(?:adapter|component)\.toml", n)]
+    manifests = [n for n in names if re.fullmatch(r"(?:[^/]+/)?(?:adapter|component|plugin)\.toml", n)]
     if len(manifests) != 1:
-        raise Problem(f"{zip_name} should hold one adapter.toml, at the top or one folder down")
-    folder = manifests[0].rpartition("/")[0]
+        raise Problem(f"{zip_name} should hold one adapter.toml or plugin.toml, at the top or one folder down")
+    folder, _, file = manifests[0].rpartition("/")
     try:
         manifest = tomllib.loads(z.read(manifests[0]).decode("utf-8"))
     except (tomllib.TOMLDecodeError, UnicodeDecodeError) as e:
-        raise Problem(f"{zip_name}: adapter.toml has a problem: {e}") from e
+        raise Problem(f"{zip_name}: {file} has a problem: {e}") from e
+    if file == "plugin.toml":
+        return read_plugin(manifest, zip_name, folder, names)
+    manifest["kind"] = "adapter"
     for key in ["name", "run"]:
         if not manifest.get(key):
             raise Problem(f"{zip_name}: adapter.toml needs `{key}`")
@@ -83,6 +87,31 @@ def read_manifest(data: bytes, zip_name: str, platform: str | None) -> dict:
             path += ".exe"
         if path not in names:
             raise Problem(f"{zip_name} doesn't contain its program {path}")
+    return manifest
+
+
+def read_plugin(manifest: dict, zip_name: str, folder: str, names: list[str]) -> dict:
+    """Checks a WebAssembly plugin's manifest and turns its capabilities
+    into the same plain-words list adapters get."""
+    if not manifest.get("name"):
+        raise Problem(f"{zip_name}: plugin.toml needs `name`")
+    wasm = manifest.get("wasm", "plugin.wasm")
+    if (f"{folder}/{wasm}" if folder else wasm) not in names:
+        raise Problem(f"{zip_name} doesn't contain its component {wasm}")
+    caps = manifest.get("capabilities", {})
+    can = []
+    for access in caps.get("document", []):
+        can.append({"read": "read your document", "edit": "edit your document"}.get(access, access))
+    for grant in caps.get("filesystem", []):
+        verb = "read and change" if grant.get("access") == "read-write" else "read"
+        can.append(f"{verb} files in {grant.get('path')}")
+    network = caps.get("network", "none")
+    if network == "any":
+        can.append("go online")
+    elif isinstance(network, list) and network:
+        can.append("connect to " + ", ".join(network))
+    manifest["kind"] = "plugin"
+    manifest["can"] = can
     return manifest
 
 
@@ -122,7 +151,10 @@ def load_entry(path: Path, check: bool) -> dict:
         "author": manifest.get("author", ""),
         "license": manifest.get("license", ""),
         "description": manifest.get("description", "") or info.get("description") or "",
+        "kind": manifest["kind"],
         "permissions": manifest.get("permissions", []),
+        # Plain words for what it may do (plugins enforce this in a sandbox).
+        "can": manifest.get("can") or [PERMISSIONS[p] for p in manifest.get("permissions", [])],
         "category": entry.get("category", "Other"),
         "tags": entry.get("tags", []),
         "repo": repo,
@@ -161,7 +193,9 @@ def render(adapters: list[dict]) -> str:
                 missing = [label for p, label in PLATFORMS.items() if p not in a["downloads"]]
                 if missing:
                     links += f" (not yet for {', '.join(missing)})"
-            can = ", ".join(PERMISSIONS[p] for p in a["permissions"]) or "nothing beyond its own window and menus"
+            can = ", ".join(a["can"]) or "nothing beyond its own window and menus"
+            if a["kind"] == "plugin":
+                can += " (enforced: plugins run in a sandbox; not in Folio Lite)"
             meta = [f"v{a['version']}"]
             if a["author"]:
                 meta.append(f"by {a['author']}")
@@ -172,8 +206,9 @@ def render(adapters: list[dict]) -> str:
                 meta.append(f"★ {a['stars']}")
             if a["updated"]:
                 meta.append(f"updated {a['updated']}")
+            badge = " · *plugin*" if a["kind"] == "plugin" else ""
             out += [
-                f"### {a['name']}",
+                f"### {a['name']}{badge}",
                 "",
                 a["description"],
                 "",
