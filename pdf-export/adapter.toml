@@ -1,6 +1,6 @@
 # Exports the document as a PDF. Build it with ./build.sh first.
 name = "PDF Export"
-version = "0.2.1"
+version = "0.2.2"
 author = "Folio"
 license = "MIT"
 description = "Print-perfect PDFs that match the page exactly, with your theme's fonts embedded."

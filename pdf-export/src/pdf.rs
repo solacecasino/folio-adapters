@@ -8,6 +8,8 @@ use std::path::PathBuf;
 
 use krilla::color::rgb;
 use krilla::geom::{PathBuilder, Point, Rect, Size, Transform};
+use krilla::action::{Action, LinkAction};
+use krilla::annotation::{LinkAnnotation, Target};
 use krilla::metadata::Metadata;
 use krilla::num::NormalizedF32;
 use krilla::page::PageSettings;
@@ -36,6 +38,18 @@ pub struct Page {
     pub texts: Vec<Text>,
     #[serde(default)]
     pub rects: Vec<Block>,
+    /// Clickable areas: one per line of each link (Folio 1.0.2 and later).
+    #[serde(default)]
+    pub links: Vec<LinkArea>,
+}
+
+#[derive(Deserialize)]
+pub struct LinkArea {
+    pub x: f32,
+    pub y: f32,
+    pub w: f32,
+    pub h: f32,
+    pub url: String,
 }
 
 /// One run of text (usually a word) at its baseline position.
@@ -141,6 +155,12 @@ pub fn render(model: &Model) -> Result<Vec<u8>, String> {
             }
         }
         surface.finish();
+        for link in &page.links {
+            if let Some(rect) = Rect::from_xywh(link.x, link.y, link.w, link.h) {
+                let target = Target::Action(Action::Link(LinkAction::new(link.url.clone())));
+                p.add_annotation(LinkAnnotation::new(rect, target).into());
+            }
+        }
         p.finish();
     }
     doc.finish().map_err(|e| format!("couldn't write the PDF: {e:?}"))
@@ -199,6 +219,7 @@ mod tests {
                 slant: true,
             }],
             rects: vec![Block { x: 72.0, y: 102.0, w: 40.0, h: 1.0, color: BLACK }],
+            links: vec![LinkArea { x: 72.0, y: 88.0, w: 40.0, h: 16.0, url: "https://example.com".into() }],
         };
         let model = Model {
             title: "Test".to_owned(),
@@ -213,6 +234,7 @@ mod tests {
         assert!(text.contains("/Type/Pages/Count 3"), "three pages");
         assert!(text.contains("FontFile2"), "the theme font is embedded");
         assert!(text.contains("/ToUnicode"), "text stays selectable and searchable");
+        assert!(text.contains("/Subtype/Link") && text.contains("https://example.com"), "links are clickable");
         assert!(text.contains("/Title(Test)"));
     }
 

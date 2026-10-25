@@ -1,0 +1,36 @@
+# Rich Content: bulleted and numbered lists, and links, for Folio.
+# Folio draws and prints lists and links by itself; this adapter adds the
+# commands to make them. Without it, documents with lists and links still
+# open and look right.
+name = "Rich Content"
+version = "0.1.0"
+author = "Folio"
+license = "MIT"
+description = "Bulleted and numbered lists, and links. Tab and Shift+Tab change a list item's level."
+homepage = "https://github.com/solacecasino/folio-adapters/tree/main/rich-content"
+
+run = ["./rich-content"]
+permissions = ["document.read", "document.edit"]
+
+[[commands]]
+id = "bullets"
+label = "Bulleted List"
+keys = "cmd+shift+8"
+menu = "format"
+
+[[commands]]
+id = "numbers"
+label = "Numbered List"
+keys = "cmd+shift+7"
+menu = "format"
+
+[[commands]]
+id = "link"
+label = "Add Link…"
+keys = "cmd+k"
+menu = "format"
+
+[[commands]]
+id = "unlink"
+label = "Remove Link"
+menu = "format"

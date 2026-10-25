@@ -1,0 +1,17 @@
+[package]
+name = "rich-content"
+version = "0.1.0"
+edition = "2024"
+description = "Lists and links for Folio"
+license = "MIT"
+publish = false
+
+# Its own crate, not part of a workspace.
+[workspace]
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+strip = true
+opt-level = "s"

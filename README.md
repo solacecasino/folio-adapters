@@ -34,6 +34,7 @@ This repo also holds the adapters made with Folio:
 |---|---|---|
 | [pdf-export](pdf-export) | **File → Export as PDF**. Print-perfect: matches the page line for line, with your theme's fonts embedded and searchable text. | Rust, [krilla](https://github.com/LaurenzV/krilla) |
 | [folio-link](folio-link) | **Live co-editing** with people you invite, over encrypted peer-to-peer links. No accounts, no servers of ours. [How it works](docs/folio-link.md) | Rust, [iroh](https://iroh.computer), [Loro](https://loro.dev) |
+| [rich-content](rich-content) | **Bulleted and numbered lists, and links** (Format menu; Cmd+Shift+8, Cmd+Shift+7, Cmd+K). Folio draws and prints them on its own, so documents look right without it; this adds the commands to make them. Needs Folio 1.0.2. | Rust |
 | [writing-tools](writing-tools) | A word-count goal panel, today's date, document stats. | Python |
 
 Compiled adapters come as one zip per platform (`-macos-arm64`,

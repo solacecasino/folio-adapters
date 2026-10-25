@@ -1,8 +1,9 @@
 //! The shared document: one `LoroText` in the Quill model.
 //!
 //! Paragraphs are separated by `\n`, with a trailing `\n`. Inline formatting is
-//! the marks `bold`, `italic` and `underline`; a paragraph's style ("body",
-//! "h1", ...) is a `style` mark on that paragraph's `\n`.
+//! the marks `bold`, `italic`, `underline` and `link` (the URL); a paragraph's
+//! style ("body", "h1", ...) is a `style` mark on that paragraph's `\n`, and a
+//! list item's kind and level a `list` mark there ("bullet:0").
 //!
 //! Folio sends whole-document snapshots. Each one is turned into CRDT edits by
 //! diffing it against the version Folio last had (the "shadow"), so a snapshot
@@ -33,14 +34,40 @@ pub struct Run {
     pub italic: bool,
     #[serde(default, skip_serializing_if = "is_false")]
     pub underline: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub link: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Paragraph {
     #[serde(default = "body")]
     pub style: String,
+    /// `{ "kind": "bullet", "level": 0 }` for a list item.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub list: Option<List>,
     #[serde(default)]
     pub runs: Vec<Run>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct List {
+    pub kind: String,
+    #[serde(default)]
+    pub level: u8,
+}
+
+impl List {
+    fn to_mark(&self) -> String {
+        format!("{}:{}", self.kind, self.level)
+    }
+
+    fn from_mark(s: &str) -> Option<Self> {
+        let (kind, level) = s.split_once(':')?;
+        Some(Self {
+            kind: kind.to_owned(),
+            level: level.parse().ok()?,
+        })
+    }
 }
 
 fn body() -> String {
@@ -59,7 +86,9 @@ pub struct Pos {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct Attrs {
     flags: [bool; 3],
+    link: Option<String>,
     style: Option<String>,
+    list: Option<String>,
 }
 
 /// The document as one string plus per-character formatting.
@@ -72,14 +101,16 @@ fn flatten(paragraphs: &[Paragraph]) -> (String, Vec<Attrs>) {
                 text.push(c);
                 attrs.push(Attrs {
                     flags: [run.bold, run.italic, run.underline],
-                    style: None,
+                    link: run.link.clone(),
+                    ..Attrs::default()
                 });
             }
         }
         text.push('\n');
         attrs.push(Attrs {
-            flags: [false; 3],
             style: Some(p.style.clone()),
+            list: p.list.as_ref().map(List::to_mark),
+            ..Attrs::default()
         });
     }
     (text, attrs)
@@ -92,13 +123,17 @@ fn unflatten(chars: &[char], attrs: &[Attrs]) -> Vec<Paragraph> {
         if c == '\n' {
             out.push(Paragraph {
                 style: a.style.clone().unwrap_or_else(body),
+                list: a.list.as_deref().and_then(List::from_mark),
                 runs: std::mem::take(&mut runs),
             });
             continue;
         }
         let [bold, italic, underline] = a.flags;
         match runs.last_mut() {
-            Some(r) if (r.bold, r.italic, r.underline) == (bold, italic, underline) => {
+            Some(r)
+                if (r.bold, r.italic, r.underline) == (bold, italic, underline)
+                    && r.link == a.link =>
+            {
                 r.text.push(c)
             }
             _ => runs.push(Run {
@@ -106,6 +141,7 @@ fn unflatten(chars: &[char], attrs: &[Attrs]) -> Vec<Paragraph> {
                 bold,
                 italic,
                 underline,
+                link: a.link.clone(),
             }),
         }
     }
@@ -113,6 +149,7 @@ fn unflatten(chars: &[char], attrs: &[Attrs]) -> Vec<Paragraph> {
     if !runs.is_empty() || out.is_empty() {
         out.push(Paragraph {
             style: body(),
+            list: None,
             runs,
         });
     }
@@ -128,12 +165,15 @@ fn read(text: &LoroText) -> (Vec<char>, Vec<Attrs>) {
             continue;
         };
         let get = |k: &str| attributes.as_ref().and_then(|m| m.get(k));
+        let string = |k: &str| match get(k) {
+            Some(LoroValue::String(s)) => Some(s.to_string()),
+            _ => None,
+        };
         let a = Attrs {
             flags: INLINE.map(|k| matches!(get(k), Some(LoroValue::Bool(true)))),
-            style: match get("style") {
-                Some(LoroValue::String(s)) => Some(s.to_string()),
-                _ => None,
-            },
+            link: string("link"),
+            style: string("style"),
+            list: string("list"),
         };
         for c in insert.chars() {
             chars.push(c);
@@ -153,12 +193,16 @@ fn configure(doc: &LoroDoc) {
             },
         );
     }
-    styles.insert(
-        "style".into(),
-        StyleConfig {
-            expand: ExpandType::None,
-        },
-    );
+    // Typing at the end of a link doesn't extend it; paragraph marks stay
+    // on their `\n`.
+    for k in ["style", "list", "link"] {
+        styles.insert(
+            k.into(),
+            StyleConfig {
+                expand: ExpandType::None,
+            },
+        );
+    }
     doc.config_text_style(styles);
 }
 
@@ -199,8 +243,18 @@ fn apply(text: &LoroText, paragraphs: &[Paragraph]) {
         }
     }
     for (i, c) in chars.iter().enumerate() {
+        if *c != '\n' && want[i].link != have[i].link {
+            push(i, "link", want[i].link.clone().map(|s| s.into()));
+        }
+    }
+    for (i, c) in chars.iter().enumerate() {
         if *c == '\n' && want[i].style != have[i].style {
             push(i, "style", want[i].style.clone().map(|s| s.into()));
+        }
+    }
+    for (i, c) in chars.iter().enumerate() {
+        if *c == '\n' && want[i].list != have[i].list {
+            push(i, "list", want[i].list.clone().map(|s| s.into()));
         }
     }
     for (start, end, key, value) in fixes {
@@ -248,6 +302,7 @@ impl Crdt {
         let mut crdt = Self::new();
         let empty = [Paragraph {
             style: body(),
+            list: None,
             runs: Vec::new(),
         }];
         apply(
@@ -425,6 +480,7 @@ mod tests {
     fn para(style: &str, runs: &[(&str, bool, bool)]) -> Paragraph {
         Paragraph {
             style: style.into(),
+            list: None,
             runs: runs
                 .iter()
                 .map(|&(text, bold, italic)| Run {
@@ -432,9 +488,22 @@ mod tests {
                     bold,
                     italic,
                     underline: false,
+                    link: None,
                 })
                 .collect(),
         }
+    }
+
+    #[test]
+    fn lists_and_links_sync_between_peers() {
+        let mut doc = vec![para("body", &[("See ", false, false), ("the site", false, false)]), para("body", &[("One", false, false)])];
+        doc[0].runs[1].link = Some("https://example.com".into());
+        doc[1].list = Some(List { kind: "numbered".into(), level: 1 });
+        let a = Crdt::from_paragraphs(&doc);
+        assert_eq!(a.paragraphs(), doc, "kept locally");
+        let mut b = Crdt::new();
+        b.import(&a.export_snapshot()).unwrap();
+        assert_eq!(b.paragraphs(), doc, "and on the other side");
     }
 
     fn sync(a: &mut Crdt, b: &mut Crdt) {

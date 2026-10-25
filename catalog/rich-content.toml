@@ -1,0 +1,4 @@
+repo = "solacecasino/folio-adapters"
+adapter = "rich-content"
+category = "Writing"
+tags = ["lists", "bullets", "numbering", "links"]

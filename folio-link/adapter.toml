@@ -1,6 +1,6 @@
 # Live co-editing over encrypted peer-to-peer links. See docs/folio-link.md.
 name = "Folio Link"
-version = "0.3.0"
+version = "0.3.1"
 author = "Folio"
 license = "MIT"
 description = "Edit a document together, live, over an encrypted direct link. No accounts."
