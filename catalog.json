@@ -7,10 +7,16 @@
       "author": "Folio",
       "license": "MIT",
       "description": "Edit a document together, live, over an encrypted direct link. No accounts.",
+      "kind": "adapter",
       "permissions": [
         "document.read",
         "document.edit",
         "network"
+      ],
+      "can": [
+        "read your document",
+        "edit your document",
+        "go online"
       ],
       "category": "Collaboration",
       "tags": [],
@@ -31,8 +37,12 @@
       "author": "Folio",
       "license": "MIT",
       "description": "Print-perfect PDFs that match the page exactly, with your theme's fonts embedded.",
+      "kind": "adapter",
       "permissions": [
         "document.read"
+      ],
+      "can": [
+        "read your document"
       ],
       "category": "Export",
       "tags": [],
@@ -53,9 +63,14 @@
       "author": "Folio",
       "license": "MIT",
       "description": "A word-count goal in the status line, today's date, and document stats.",
+      "kind": "adapter",
       "permissions": [
         "document.read",
         "document.edit"
+      ],
+      "can": [
+        "read your document",
+        "edit your document"
       ],
       "category": "Writing",
       "tags": [],
